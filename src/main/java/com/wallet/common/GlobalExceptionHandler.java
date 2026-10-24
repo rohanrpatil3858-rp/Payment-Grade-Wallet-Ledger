@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import com.wallet.llm.LlmUnavailableException;
 
 import java.util.UUID;
 
@@ -19,6 +20,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiError> handleUnreadableBody(HttpMessageNotReadableException e) {
         return error(HttpStatus.BAD_REQUEST, "MALFORMED_REQUEST", "Request body is missing or malformed");
+    }
+
+    @ExceptionHandler(LlmUnavailableException.class)
+    public ResponseEntity<ApiError> handleLlmUnavailable(LlmUnavailableException e) {
+        return error(HttpStatus.SERVICE_UNAVAILABLE, "LLM_UNAVAILABLE",
+                "The language model provider is currently unreachable; please try again later");
     }
 
     @ExceptionHandler(IllegalStateException.class)

@@ -104,9 +104,9 @@ Check 'POST /admin/reconciliation/run' ($recRun.runId -gt 0)
 $recGet = Invoke-RestMethod "$base/admin/reconciliation/runs/$($recRun.runId)"
 Check 'GET /admin/reconciliation/runs/{id}' ($recGet.run.id -eq $recRun.runId)
 
-# 18. POST /users/{id}/statement/ask (uses LLM path -> will fail LLM call, expect graceful handling)
+# 18. POST /users/{id}/statement/ask (uses LLM path -> LLM unreachable here => 503 LLM_UNAVAILABLE)
 $askStatus = TryStatus 'Post' "/users/$($asha.userId)/statement/ask" @{question='How much did I send to Rahul?'}
-Check 'POST /users/{id}/statement/ask (responds, LLM unreachable => 500 handled)' ($askStatus -eq 200 -or $askStatus -eq 500) "got $askStatus"
+Check 'POST /users/{id}/statement/ask (200 with LLM, or 503 when provider unreachable)' ($askStatus -eq 200 -or $askStatus -eq 503) "got $askStatus"
 
 Write-Host ""
 Write-Host "==== RESULT: $pass passed, $fail failed ====" -ForegroundColor Cyan
