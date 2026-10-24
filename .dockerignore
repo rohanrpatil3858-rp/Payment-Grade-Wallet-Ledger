@@ -1,0 +1,15 @@
+# Keep the Docker build context small and reproducible: never copy local build output,
+# IDE files, or secrets into the image.
+.git
+.gitignore
+.gitattributes
+build
+bin
+.gradle
+.idea
+.vscode
+*.iml
+HELP.md
+test_output.txt
+docs
+*.log

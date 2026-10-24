@@ -1,0 +1,39 @@
+# One command to run everything: `docker compose up --build -d`
+# Starts PostgreSQL and the Spring Boot app (which also runs the nightly reconciliation
+# worker in-process via @Scheduled). Flyway applies all migrations on app startup.
+
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: digital_wallet
+      POSTGRES_USER: postgres
+      # Credentials come from the environment (or a .env file); default is dev-only.
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # The app waits for this to pass before it starts, so Flyway never races the DB.
+      test: ["CMD-SHELL", "pg_isready -U postgres -d digital_wallet"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/digital_wallet
+      SPRING_DATASOURCE_USERNAME: postgres
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      # Optional: set to call the real LLM provider; tests/mocks need no key.
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:
